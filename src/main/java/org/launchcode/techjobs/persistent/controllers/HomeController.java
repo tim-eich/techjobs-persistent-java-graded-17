@@ -1,6 +1,7 @@
 package org.launchcode.techjobs.persistent.controllers;
 
 import jakarta.validation.Valid;
+import org.launchcode.techjobs.persistent.models.Employer;
 import org.launchcode.techjobs.persistent.models.Job;
 import org.launchcode.techjobs.persistent.models.Skill;
 import org.launchcode.techjobs.persistent.models.data.EmployerRepository;
@@ -35,6 +36,7 @@ public class HomeController {
     public String index(Model model) {
 
         model.addAttribute("title", "MyJobs");
+        model.addAttribute("jobs", jobRepository.findAll());
 
         return "index";
     }
@@ -52,14 +54,25 @@ public class HomeController {
     public String processAddJobForm(@ModelAttribute @Valid Job newJob,
                                        Errors errors, Model model, @RequestParam int employerId, @RequestParam List<Integer> skills) {
 
-        List<Skill> skillObjs = (List<Skill>) skillRepository.findAllById(skills);
-        newJob.setSkills(skillObjs);
-
         if (errors.hasErrors()) {
 	    model.addAttribute("title", "Add Job");
             return "add";
         }
-        model.addAttribute("employer", employerRepository.findById(employerId));
+        // Unnecessary validation?
+        Optional<Employer> optEmployer = employerRepository.findById(employerId);
+        if (optEmployer.isPresent()) {
+            Employer employer = (Employer) optEmployer.get();
+            newJob.setEmployer(employer);
+        }
+
+        List<Skill> skillObjs = (List<Skill>) skillRepository.findAllById(skills);
+        newJob.setSkills(skillObjs);
+
+        // This method breaks 'testProcessAddJobFormHandlesSkillsProperly'
+//        Optional<Employer> optEmployer = employerRepository.findById(employerId);
+//        Employer employer = (Employer) optEmployer.get();
+//        newJob.setEmployer(employer);
+
         jobRepository.save(newJob);
         return "redirect:";
     }
@@ -67,7 +80,13 @@ public class HomeController {
     @GetMapping("view/{jobId}")
     public String displayViewJob(Model model, @PathVariable int jobId) {
 
-            return "view";
+        Optional<Job> optJob = jobRepository.findById(jobId);
+        if (optJob.isPresent()) {
+            Job job = (Job) optJob.get();
+            model.addAttribute("job", job);
+        }
+
+        return "view";
     }
 
 }
