@@ -58,6 +58,12 @@ public class HomeController {
 	    model.addAttribute("title", "Add Job");
             return "add";
         }
+
+//        // This method breaks 'testProcessAddJobFormHandlesSkillsProperly'
+//        Optional<Employer> optEmployer = employerRepository.findById(employerId);
+//        Employer employer = (Employer) optEmployer.get();
+//        newJob.setEmployer(employer);
+
         // Unnecessary validation?
         Optional<Employer> optEmployer = employerRepository.findById(employerId);
         if (optEmployer.isPresent()) {
@@ -67,11 +73,6 @@ public class HomeController {
 
         List<Skill> skillObjs = (List<Skill>) skillRepository.findAllById(skills);
         newJob.setSkills(skillObjs);
-
-        // This method breaks 'testProcessAddJobFormHandlesSkillsProperly'
-//        Optional<Employer> optEmployer = employerRepository.findById(employerId);
-//        Employer employer = (Employer) optEmployer.get();
-//        newJob.setEmployer(employer);
 
         jobRepository.save(newJob);
         return "redirect:";
